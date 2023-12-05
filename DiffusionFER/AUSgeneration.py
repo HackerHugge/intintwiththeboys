@@ -1,6 +1,6 @@
 #############################################################################################################
 # THIS SCRIPT IS ONLY USED WHEN GENERATING THE AUS DATAFRAME aus_data.csv. IT WILL TAKE A LONG TIME TO RUN SINCE IT ITERATIES OVER A 1000 PICTURES
-# THE aus.csv FILE SHOULD ALREADY EXIST IN THE FOLDER. IF YOU WISH TO RUN THIS SCRIPT PLEASE UNCOMMENT THE TINY LOOP OF: if count == limit_per_folder: break
+# THE aus_data.csv FILE SHOULD ALREADY EXIST IN THE FOLDER. IF YOU WISH TO RUN THIS SCRIPT PLEASE UNCOMMENT THE TINY LOOP OF: if count == limit_per_folder: break
 ##############################################################################################################
 
 import pandas as pd
