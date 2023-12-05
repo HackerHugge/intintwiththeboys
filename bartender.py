@@ -2,7 +2,7 @@
 # HUGO ASZTELY, SIMON OLOFSSON & JOEL TINGWALL
 # Code outline for a hardcoded furhat bartender with dialogues based on keywords
 
-# change to your directory in terminal where the python used is, and pip installl all necessary modules and references
+# change to your directory in terminal where the python used is, and pip install all necessary modules and references
 # NECESSARY IMPORTS
 from time import sleep
 from furhat_remote_api import FurhatRemoteAPI
