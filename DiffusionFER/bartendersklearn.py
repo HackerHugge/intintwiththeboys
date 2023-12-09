@@ -130,32 +130,7 @@ def set_persona(persona):
 # Say with blocking (blocking say, bsay for short)
 def bsay(line):
     furhat.say(text=line, blocking=True)
-
-def interact_with_user():
-    set_persona('Amany')
-    cap = initialize_video_capture()
-    while True:
-
-        user_response = listen_to_user()
-
-        recognized_valence = recognize_valence_from_video(4, cap)
-        
-        # Convert the list of arrays to a numpy array
-        valence_array = np.array(recognized_valence)
-        print("Valence array:", valence_array)
-        # Calculate the mean along the specified axis (0 for column-wise, 1 for row-wise)
-        mean_valence = np.mean(valence_array, axis=0)
-
-        print("Mean valence:", mean_valence)
-
-        sleep(3)
-        if mean_valence > 0.2:
-            bsay("I see you are happy!")
-        elif mean_valence < -0.1:
-            bsay("I see you are sad!")
-        else:
-            bsay("I see you are neutral!")
-        
+      
 
 
 def recognize_valence_from_video(duration_seconds, cap):
@@ -213,6 +188,45 @@ def listen_to_user():
             return user_response
         except sr.UnknownValueError:
             return ""
+        
+def happy_response():
+    response = "I see you are happy!"
+    return response
+
+def sad_response():
+    response = "I see you are sad!"
+    return response
+
+def neutral_response():
+    response = "I see you are neutral!"
+    return response
+        
+
+def interact_with_user():
+    set_persona('Amany')
+    cap = initialize_video_capture()
+    while True:
+
+        user_response = listen_to_user()
+
+        recognized_valence = recognize_valence_from_video(4, cap)
+        
+        # Convert the list of arrays to a numpy array
+        valence_array = np.array(recognized_valence)
+        print("Valence array:", valence_array)
+        # Calculate the mean along the specified axis (0 for column-wise, 1 for row-wise)
+        mean_valence = np.mean(valence_array, axis=0)
+
+        print("Mean valence:", mean_valence)
+
+        sleep(3)
+
+        if mean_valence > 0.2:
+            bsay(happy_response())
+        elif mean_valence < -0.1:
+            bsay(sad_response())
+        else:
+            bsay(neutral_response())
 
 if __name__ == '__main__':
     try:
