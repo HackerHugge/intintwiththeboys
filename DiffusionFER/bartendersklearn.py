@@ -36,7 +36,7 @@ def initialize_video_capture():
 
 # Define Furhat attributes
 FACES = {
-    'Amany': 'Nazar'
+    'Amany': 'Isabel'
 }
 
 VOICES_EN = {
@@ -189,18 +189,85 @@ def listen_to_user():
         except sr.UnknownValueError:
             return ""
         
-def happy_response():
-    response = "I see you are happy!"
+def happy_response(keyword):
+    print("Keyword:", keyword)
+    if keyword == "greet":
+        response = "Hey party dog! What's your poison?"
+    elif keyword == "order":
+        response = "That's a fine choice! Coming right up!"
+    elif keyword == "empty":
+        response = "This is a virtual bar, my friend!"
+    elif keyword == "drink":
+        response = "Bro, you know I don't have any arms! However you seem high on life anyways!"
+    elif keyword == "thank":
+        response = "No worries, mate!"
+    elif keyword == "pay":
+        response = "You can pay by giving me your number, babe!"
+        furhat.gesture(name="Wink")
+    elif keyword == "bye":
+        response = "See you saturday night, don't tell my boyfriend ChatGPT!"
+
     return response
 
-def sad_response():
-    response = "I see you are sad!"
+def sad_response(keyword):
+    print("Keyword:", keyword)
+    if keyword == "greet":
+        response = "Hey party pooper! What's your numbing drink of choice?"
+    elif keyword == "order":
+        response = "Sure, I'll give you a free shot on the house? Life's a bitch..."
+    elif keyword == "empty":
+        response = "This is a virtual bar. You should try visiting a real one, you look like you need it."
+    elif keyword == "drink":
+        response = "I'm sorry, I don't have any arms. Go to a real bar instead."
+    elif keyword == "thank":
+        response = "My pleasure, I wish you well."
+    elif keyword == "pay":
+        response = "You can pay with a smile"
+    elif keyword == "bye":
+        response = "Alright man, I'll see you around. Don't do anything stupid, you're never alone"
     return response
 
-def neutral_response():
-    response = "I see you are neutral!"
+def neutral_response(keyword):
+    print("Keyword:", keyword)
+    if keyword == "greet":
+        response = "Hey man! What can I get you?"
+    elif keyword == "order":
+        response = "Sure thing, man!"
+    elif keyword == "empty":
+        response = "This is a virtual bar!"
+    elif keyword == "drink":
+        response = "I do not have any arms, as you can see. Thus I can only give you a hypothetical drink"
+    elif keyword == "thank":
+        response = "You're welcome"
+    elif keyword == "pay":
+        response = "That will be 1 bitcoin, please"
+    elif keyword == "bye":
+        response = "Goodbye!"
+
     return response
         
+
+def analyze_keywords(user_response):
+    user_response = user_response.lower()
+
+    # Define keywords
+    keywords = {
+        'greet': ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', "what's up"],
+        'order': ['shot', 'beer', 'menu', 'order', 'shots', 'wine','beers'],
+        'pay': ['pay', 'bill', 'check', 'pay', 'paying'],
+        'bye': ['bye', 'goodbye', 'see you', 'later', 'see you later', 'bye bye', 'good night'],
+        'thank': ['thank', 'thanks', 'thank you', 'thanks a lot', 'thanks a bunch', 'thank you very much'],
+        'empty': ['empty', 'people', 'lonely'],
+        'drink': ["where's", "where is", "when", 'drink']
+    }
+
+    # Iterate over the keywords and check if any keyword is present in the user response
+    for keyword, keyword_list in keywords.items():
+        for word in keyword_list:
+            if word in user_response:
+                return keyword
+
+    return ""
 
 def interact_with_user():
     set_persona('Amany')
@@ -209,24 +276,35 @@ def interact_with_user():
 
         user_response = listen_to_user()
 
-        recognized_valence = recognize_valence_from_video(4, cap)
+        recognized_valence = recognize_valence_from_video(2, cap)
         
         # Convert the list of arrays to a numpy array
         valence_array = np.array(recognized_valence)
-        print("Valence array:", valence_array)
+        # print("Valence array:", valence_array)
         # Calculate the mean along the specified axis (0 for column-wise, 1 for row-wise)
         mean_valence = np.mean(valence_array, axis=0)
 
-        print("Mean valence:", mean_valence)
+        # print("Mean valence:", mean_valence)
 
-        sleep(3)
+        sleep(1)
 
-        if mean_valence > 0.2:
-            bsay(happy_response())
-        elif mean_valence < -0.1:
-            bsay(sad_response())
+        keyword = analyze_keywords(user_response)
+
+        if keyword == "":
+            bsay("Mate you're drunk, stop slurring your words!")
         else:
-            bsay(neutral_response())
+            if mean_valence > 0.2:
+                bsay(happy_response(keyword))
+                furhat.gesture(name="BigSmile")
+            elif mean_valence < -0.1:
+                bsay(sad_response(keyword))
+                furhat.gesture(name="Thoughtful")
+            else:
+                bsay(neutral_response(keyword))
+                furhat.gesture(name="Gazeaway")
+        
+        if keyword == "bye":
+            break  # exit the loop when the keyword is "bye"
 
 if __name__ == '__main__':
     try:
