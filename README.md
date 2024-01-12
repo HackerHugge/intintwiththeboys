@@ -1,2 +1,0 @@
-# intintwiththeboys
-Furhat bartender
