@@ -3,19 +3,17 @@ import numpy as np
 from feat import Detector
 import os
 import joblib
-import pandas as pd
 import random
 import speech_recognition as sr
 from furhat_remote_api import FurhatRemoteAPI
 from time import sleep
 import time
-import threading
 import warnings
 
 # Suppress the specific UserWarning
 warnings.filterwarnings("ignore", category=UserWarning, module="torchvision.transforms.functional")
 
-# Load your trained CNN model
+# Load trained model via joblib
 model_filename = "valence_regression_model.joblib"
 model_path = os.path.join(os.getcwd(), model_filename)
 model = joblib.load(model_path)
@@ -31,6 +29,7 @@ furhat.set_led(red=100, green=50, blue=50)
 # Initialize the speech recognition recognizer
 recognizer = sr.Recognizer()
 
+#Function to initialize video capture
 def initialize_video_capture():
     return cv2.VideoCapture(0)
 
@@ -118,6 +117,7 @@ def LOOK_DOWN(speed=1):
         "class": "furhatos.gestures.Gesture"
     }
 
+#Initialize Furhat persona
 def set_persona(persona):
     furhat.gesture(name="CloseEyes")
     furhat.gesture(body=LOOK_DOWN(speed=1), blocking=True)
@@ -132,7 +132,7 @@ def bsay(line):
     furhat.say(text=line, blocking=True)
       
 
-
+#Function to recognize valence from input images (frames)
 def recognize_valence_from_video(duration_seconds, cap):
     start_time = time.time()
     valence_list = []
@@ -145,26 +145,17 @@ def recognize_valence_from_video(duration_seconds, cap):
 
         if not faces:
             print("No faces found.")
-            # You can add some code here to handle this case, like displaying a message
-            # or taking specific actions
-            # For example, you might continue to the next iteration of the loop:
             continue
 
+        # Detect landmarks and AUs for each face
         landmarks = detector.detect_landmarks(frame, faces)
-
-        # Preprocess the features to match the input format of your model
-        # (resize, normalize, etc.)
         au_values = detector.detect_aus(frame, landmarks)
-
         au_values_flat = au_values[0][0]
 
-        # Make predictions using your trained model
+        # Make predictions using our trained model
         valence_prediction = model.predict([au_values_flat])
-        # Display the resulting frame with valence information
-        # (e.g., draw the valence prediction on the frame)
-
-        # 
-
+       
+        # Append the prediction to the list, So that we later can calculate the mean valence and get a more precise result
         valence_list.append(valence_prediction)
 
         elapsed_time = time.time() - start_time
@@ -172,12 +163,10 @@ def recognize_valence_from_video(duration_seconds, cap):
             break
 
     print("Watching... Done!")
-    # Release the video capture object
-    # cap.release()
 
     return valence_list
 
-
+#Function to listen to user that outputs the user response in a string
 def listen_to_user():
     with sr.Microphone() as source:
         print("Listening...")
@@ -189,6 +178,9 @@ def listen_to_user():
         except sr.UnknownValueError:
             return ""
         
+
+#Functions to respond to user based on the keyword
+        
 def happy_response(keyword):
     print("Keyword:", keyword)
     if keyword == "greet":
@@ -198,14 +190,14 @@ def happy_response(keyword):
     elif keyword == "empty":
         response = "This is a virtual bar, my friend!"
     elif keyword == "drink":
-        response = "Bro, you know I don't have any arms! However you seem high on life anyways!"
+        response = "Bro, you know I don't have any arms! I can't make you a drink. You suddenly seem entertained!"
     elif keyword == "thank":
         response = "No worries, mate!"
     elif keyword == "pay":
-        response = "You can pay by giving me your number, babe!"
+        response = "I'm programmed to like toxic sad men! You can pay by giving me your number, babe!"
         furhat.gesture(name="Wink")
     elif keyword == "bye":
-        response = "See you saturday night, don't tell my boyfriend ChatGPT!"
+        response = "See you after my shift, don't tell my boyfriend ChatGPT!"
 
     return response
 
@@ -214,7 +206,7 @@ def sad_response(keyword):
     if keyword == "greet":
         response = "Hey party pooper! What's your numbing drink of choice?"
     elif keyword == "order":
-        response = "Sure, I'll give you a free shot on the house? Life's a bitch..."
+        response = "Sure, I'll give you a free shot on the house. Hopefully it cheers you up, after rain comes moonshine!"
     elif keyword == "empty":
         response = "This is a virtual bar. You should try visiting a real one, you look like you need it."
     elif keyword == "drink":
@@ -246,14 +238,14 @@ def neutral_response(keyword):
 
     return response
         
-
+#Analyzing keywords from user response, outputs keyword as a string which is used in the response functions
 def analyze_keywords(user_response):
     user_response = user_response.lower()
 
     # Define keywords
     keywords = {
-        'greet': ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', "what's up"],
-        'order': ['shot', 'beer', 'menu', 'order', 'shots', 'wine','beers'],
+        'greet': ['hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', "what's up"],
+        'order': ['shot', 'beer', 'order', 'shots', 'wine','beers'],
         'pay': ['pay', 'bill', 'check', 'pay', 'paying'],
         'bye': ['bye', 'goodbye', 'see you', 'later', 'see you later', 'bye bye', 'good night'],
         'thank': ['thank', 'thanks', 'thank you', 'thanks a lot', 'thanks a bunch', 'thank you very much'],
@@ -269,6 +261,7 @@ def analyze_keywords(user_response):
 
     return ""
 
+#Function for overall pipeline
 def interact_with_user():
     set_persona('Amany')
     cap = initialize_video_capture()
@@ -281,7 +274,8 @@ def interact_with_user():
         # Convert the list of arrays to a numpy array
         valence_array = np.array(recognized_valence)
         # print("Valence array:", valence_array)
-        # Calculate the mean along the specified axis (0 for column-wise, 1 for row-wise)
+
+        # Calculate the mean valence
         mean_valence = np.mean(valence_array, axis=0)
 
         # print("Mean valence:", mean_valence)
@@ -301,7 +295,7 @@ def interact_with_user():
                 furhat.gesture(name="Thoughtful")
             else:
                 bsay(neutral_response(keyword))
-                furhat.gesture(name="Gazeaway")
+                
         
         if keyword == "bye":
             break  # exit the loop when the keyword is "bye"

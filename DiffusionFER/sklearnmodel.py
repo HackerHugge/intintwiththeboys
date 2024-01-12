@@ -5,12 +5,12 @@ from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 import os
 
-# Load your dataset
+# Loading dataset
 current_path = os.getcwd()
 csv_file_path = os.path.join(current_path, 'aus_data.csv')
 aus_data_df = pd.read_csv(csv_file_path)
 
-# Remove rows with missing values
+# Remove rows with missing values (I.E Pictures that did not have faces detected)
 aus_data_df.dropna(inplace=True)
 
 # Extract features (AUs, and other relevant features) and target variable (valence)
@@ -18,7 +18,7 @@ X = aus_data_df.drop(['emotion', 'file', 'valence', 'arousal'], axis=1)
 y_valence = aus_data_df['valence']
 
 # Split the data into training and testing sets
-X_train, X_test, y_valence_train, y_valence_test = train_test_split(X, y_valence, test_size=0.2, random_state=42)
+X_train, X_test, y_valence_train, y_valence_test = train_test_split(X, y_valence, test_size=0.2, random_state=40)
 
 # Initialize and train the regression model
 model = LinearRegression()
